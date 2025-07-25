@@ -1,5 +1,5 @@
 
-# 🚀 <red404>: Una red social differente
+# 🚀 **red404**: Una red social differente
 
 Welcome to the **red404** project! This is a collaborative effort by the members of our Discord programming community to build a toy social network. Our goal is to create a fun, functional application while learning and growing together in a supportive environment.
 
