@@ -1,0 +1,33 @@
+# General
+.DS_Store
+.env # Local environment variables (DO NOT COMMIT!)
+.vscode/ # VS Code settings
+.idea/ # IntelliJ/GoLand settings
+*.sublime-project
+*.sublime-workspace
+.log
+*.log
+
+# Go
+/backend/tmp/ # Temporary build directory for air/Go
+/backend/main # Compiled binary for Go (assuming 'main' is your default name)
+/backend/bin/ # Any other compiled binaries
+/backend/pkg/ # Go module cache
+/backend/.air.toml # Air configuration, if you choose to keep it local to dev env
+/backend/go.sum # Can sometimes be ignored if you rely on go.mod and go mod download always
+
+# Node.js / React / Vite
+/frontend/node_modules/
+/frontend/dist/ # Vite build output
+/frontend/.vite/ # Vite cache directory
+
+# Docker
+# For local dev, we don't ignore volumes, but if you have specific build outputs
+# that are *not* intended for source control, list them here.
+# Docker build context itself is managed by .dockerignore (if present in specific service dirs)
+
+# Database
+# If you have local DB dumps or specific DB client configs you don't want committed
+# For PostgreSQL:
+# pg_data/
+# *.sql.bak
