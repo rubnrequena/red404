@@ -12,7 +12,6 @@
 /backend/tmp/ # Temporary build directory for air/Go
 /backend/main # Compiled binary for Go (assuming 'main' is your default name)
 /backend/bin/ # Any other compiled binaries
-/backend/pkg/ # Go module cache
 /backend/.air.toml # Air configuration, if you choose to keep it local to dev env
 /backend/go.sum # Can sometimes be ignored if you rely on go.mod and go mod download always
 
