@@ -51,7 +51,7 @@ export default function Post(props: PostProps) {
             </div>
             <address className="flex items-center gap-1.5">
               <MapPinIcon width={20} height={20} />
-              lechería
+              <span className="text-sm">lechería</span>
             </address>
           </div>
         </div>
