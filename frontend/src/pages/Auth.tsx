@@ -1,6 +1,8 @@
 import { useState } from "react";
 import MetaIcon from "../assets/icons/MetaIcon";
 import GoogleIcon from "../assets/icons/GoogleIcon";
+import Button from "../components/AuthComponents/Button";
+import Input from "../components/AuthComponents/Input";
 function Auth() {
   const [requestCode, setRequestCode] = useState(false);
 
@@ -19,22 +21,14 @@ function Auth() {
   }
   return (
     <main className="w-full h-screen flex flex-col items-center justify-center bg-base">
-      <h1 className="text-3xl text-red-300 mb-10">red404</h1>
+      <h1 className="text-3xl text-primary mb-10">red404</h1>
       <div className="auth-providers flex flex-col gap-5 mb-5 ">
-        <button
-          className="google w-64 flex items-center justify-center gap-1.5 px-5 py-2 border border-stone-700 rounded-xl cursor-pointer "
-          onClick={googleAuth}
-        >
+        <Button type="button" provider="Google" onClick={googleAuth}>
           <GoogleIcon />
-          <span>Continue with Google</span>
-        </button>
-        <button
-          className="meta w-64 flex items-center justify-center gap-1.5 px-5 py-2 border border-stone-700 rounded-xl cursor-pointer "
-          onClick={metaAuth}
-        >
+        </Button>
+        <Button type="button" provider="Meta" onClick={metaAuth}>
           <MetaIcon />
-          <span>Continue with Meta</span>
-        </button>
+        </Button>
       </div>
       {!requestCode ? (
         <form
@@ -42,49 +36,39 @@ function Auth() {
           action="/backend/login"
           method="POST"
         >
-          <div className="flex flex-col gap-3">
+          <div className="container flex flex-col gap-3">
             <label className="self-start" htmlFor="email">
               Email
             </label>
-            <input
-              className=" w-64 border border-stone-700 rounded-xl p-2 focus:outline-0"
-              type="email"
+            <Input
               name="email"
               id="email"
-              placeholder="email"
+              placeholder="Enter your email"
+              type="email"
             />
-            <button
-              className="flex items-center justify-center gap-1.5 px-5 py-2 border border-stone-700 rounded-xl cursor-pointer "
+            <Button
               type="submit"
+              text="Continue"
               onClick={getVerificationCode}
-            >
-              <span>Continue</span>
-            </button>
+            />
           </div>
         </form>
       ) : (
         <form className="" action="/verify-code">
-          <div className="flex flex-col  gap-3">
+          <div className="container flex flex-col gap-3">
             <label className="self-start" htmlFor="verification-code">
               Verification code
             </label>
-            <input
-              className="border border-stone-700 rounded-xl p-2 focus:outline-0"
-              type="text"
+            <Input
               name="verification-code"
               id="verification-code"
-              placeholder="enter code"
+              placeholder="Enter code"
+              type="text"
             />
-            <span className="text-stone-400 text-sm">
-              We've sent you a verification code at your email
-              <address></address>
+            <span className="text-text-light text-sm">
+              Sent you a verification code at your email
             </span>
-            <button
-              className="flex items-center justify-center gap-1.5 px-5 py-2 border border-stone-700 rounded-xl cursor-pointer"
-              type="submit"
-            >
-              Send
-            </button>
+            <Button type="button" text="Send" />
           </div>
         </form>
       )}
