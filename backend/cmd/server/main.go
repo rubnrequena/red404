@@ -16,6 +16,8 @@ import (
 	"github.com/escuadron-404/red404/backend/internal/routes"
 	"github.com/escuadron-404/red404/backend/internal/services"
 	"github.com/escuadron-404/red404/backend/pkg/database"
+	"github.com/escuadron-404/red404/backend/pkg/middleware"
+	"github.com/escuadron-404/red404/backend/pkg/utils"
 
 	"github.com/go-playground/validator/v10"
 	"github.com/jackc/pgx/v5/pgxpool"
@@ -46,20 +48,26 @@ func main() {
 		log.Fatal("Failed to run migrations:", err)
 	}
 
-	// Initialize validator
+	// Initialize utilities
 	validate := validator.New()
+	jwtUtil := utils.NewJWTUtil(cfg.JWTSecret, cfg.JWTExpirationHours)
 
 	// Initialize repositories
 	userRepo := repositories.NewUserRepository(db.Pool)
 
 	// Initialize services
 	userService := services.NewUserService(userRepo, validate)
+	authService := services.NewAuthService(userRepo, validate, jwtUtil)
 
 	// Initialize handlers
 	userHandler := handlers.NewUserHandler(userService, validate)
+	authHandler := handlers.NewAuthHandler(authService, validate)
+
+	// Initialize middleware
+	authMiddleware := middleware.NewAuthMiddleware(jwtUtil)
 
 	// Setup routes using the routes package
-	mux := routes.SetupRoutes(userHandler)
+	mux := routes.SetupRoutes(userHandler, authHandler, authMiddleware)
 
 	// Create server
 	server := &http.Server{
