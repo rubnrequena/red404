@@ -112,12 +112,12 @@ func runMigrations(pool *pgxpool.Pool) error {
 
 	_, err := pool.Exec(context.Background(), query)
 	if err != nil {
-		return fmt.Errorf("failed to create users table: %v", err)
+		return fmt.Errorf("failed to create migrations table: %v", err)
 	}
 
 	migrationService := migration.NewMigration(pool)
 	if err := migrationService.Up(); err != nil {
-		return fmt.Errorf("failed to run migrations: %v", err)
+		return err
 	}
 
 	return nil
