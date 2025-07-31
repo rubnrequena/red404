@@ -12,6 +12,10 @@ import (
 	"github.com/jackc/pgx/v5/pgxpool"
 )
 
+type MigrationResult struct {
+	Name  string
+	Count int
+}
 type Migration struct {
 	Id        int
 	Name      string
@@ -45,26 +49,30 @@ func (m *MigrationService) Up() error {
 		return err
 	}
 
-	successFiles := []string{}
+	successFiles := []MigrationResult{}
 	for _, migration := range localMigrations {
 		if !slices.Contains(dbMigrations, migration) {
-			err := m.runMigration(migration, MigrationTypeUp)
+			count, err := m.runMigration(migration, MigrationTypeUp)
 			if err != nil {
 				return err
 			}
-			successFiles = append(successFiles, migration)
+			successFiles = append(successFiles, MigrationResult{
+				Name:  migration,
+				Count: count,
+			})
 		}
 	}
 
 	for _, migration := range successFiles {
-		err = m.createMigration(migration)
+		err = m.createMigration(migration.Name)
 		if err != nil {
 			return err
 		}
 	}
 
-	count := len(successFiles)
-	log.Printf("Migrations up completed successfully: %d migrations applied\n", count)
+	for _, successFile := range successFiles {
+		log.Printf("Migrations up '%s' completed successfully: %d queries applied\n", successFile.Name, successFile.Count)
+	}
 
 	return nil
 }
@@ -80,28 +88,33 @@ func (m *MigrationService) Down() error {
 	if err != nil {
 		return err
 	}
+	lastMigration := dbMigrations[len(dbMigrations)-1]
 
-	successFiles := []string{}
+	successFiles := []MigrationResult{}
 
 	for _, migration := range localMigrations {
-		if !slices.Contains(dbMigrations, migration) {
-			err := m.runMigration(migration, MigrationTypeDown)
+		if migration == lastMigration {
+			count, err := m.runMigration(migration, MigrationTypeDown)
 			if err != nil {
 				return err
 			}
-			successFiles = append(successFiles, migration)
+			successFiles = append(successFiles, MigrationResult{
+				Name:  migration,
+				Count: count,
+			})
 		}
 	}
 
 	for _, migration := range successFiles {
-		err = m.removeMigration(migration)
+		err = m.removeMigration(migration.Name)
 		if err != nil {
 			return err
 		}
 	}
 
-	count := len(successFiles)
-	log.Printf("Migrations down completed successfully: %d migrations removed\n", count)
+	for _, successFile := range successFiles {
+		log.Printf("Migrations down '%s' completed successfully: %d queries applied\n", successFile.Name, successFile.Count)
+	}
 
 	return nil
 }
@@ -141,25 +154,25 @@ func (m *MigrationService) GetLocalMigrations() ([]string, error) {
 
 	return migrations, nil
 }
-func (m *MigrationService) runMigration(migration string, migrationType MigrationType) error {
+func (m *MigrationService) runMigration(migration string, migrationType MigrationType) (int, error) {
 	filePath := fmt.Sprintf("migrations/%s/%s.sql", migration, migrationType)
 	fileExists, err := os.Stat(filePath)
 	if os.IsNotExist(err) {
-		return fmt.Errorf("migration file %s not found", migration)
+		return 0, fmt.Errorf("migration file %s not found", migration)
 	}
 	if fileExists.IsDir() {
-		return fmt.Errorf("migration file %s is a directory", migration)
+		return 0, fmt.Errorf("migration file %s is a directory", migration)
 	}
 
 	query, err := os.ReadFile(filePath)
 	if err != nil {
-		return err
+		return 0, err
 	}
 
 	queries := strings.Split(string(query), ";")
 	tx, err := m.db.Begin(context.Background())
 	if err != nil {
-		return err
+		return 0, err
 	}
 
 	for _, query := range queries {
@@ -169,16 +182,16 @@ func (m *MigrationService) runMigration(migration string, migrationType Migratio
 
 		_, err = tx.Exec(context.Background(), query)
 		if err != nil {
-			return err
+			return 0, fmt.Errorf("failed to execute query: `%s` error: %w", query, err)
 		}
 	}
 
 	err = tx.Commit(context.Background())
 	if err != nil {
-		return err
+		return 0, err
 	}
 
-	return nil
+	return len(queries), nil
 }
 func (m *MigrationService) createMigration(migration string) error {
 	query := `INSERT INTO migrations (name, created_at) VALUES ($1, $2)`
