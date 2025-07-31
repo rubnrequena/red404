@@ -12,6 +12,7 @@ import (
 
 	"github.com/escuadron-404/red404/backend/config"
 	"github.com/escuadron-404/red404/backend/internal/handlers"
+	"github.com/escuadron-404/red404/backend/internal/migration"
 	"github.com/escuadron-404/red404/backend/internal/repositories"
 	"github.com/escuadron-404/red404/backend/internal/routes"
 	"github.com/escuadron-404/red404/backend/internal/services"
@@ -103,12 +104,10 @@ func main() {
 
 func runMigrations(pool *pgxpool.Pool) error {
 	query := `
-	CREATE TABLE IF NOT EXISTS users (
+	CREATE TABLE IF NOT EXISTS migrations (
 		id SERIAL PRIMARY KEY,
-		email TEXT NOT NULL UNIQUE,
-		password TEXT NOT NULL,
-		created_at TIMESTAMP WITH TIME ZONE DEFAULT now(),
-		updated_at TIMESTAMP WITH TIME ZONE DEFAULT now()
+		name TEXT NOT NULL,
+		created_at TIMESTAMP WITH TIME ZONE DEFAULT now()
 	);`
 
 	_, err := pool.Exec(context.Background(), query)
@@ -116,6 +115,10 @@ func runMigrations(pool *pgxpool.Pool) error {
 		return fmt.Errorf("failed to create users table: %v", err)
 	}
 
-	log.Println("Migrations completed successfully")
+	migrationService := migration.NewMigration(pool)
+	if err := migrationService.Up(); err != nil {
+		return fmt.Errorf("failed to run migrations: %v", err)
+	}
+
 	return nil
 }
